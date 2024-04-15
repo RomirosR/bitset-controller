@@ -9,6 +9,8 @@ cc_test(
     ],
     copts = [
         "-m64",
-        "-mavx512f",
+        "-mavx2",
+        "-march=native",
+        "-mavx512f"
     ],
 )
