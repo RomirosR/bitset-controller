@@ -9,12 +9,12 @@
 template <size_t SIZE>
 class BitsetControllerAVX{
    private:
-    std::array<__m256i, (SIZE >> 8)> a_;
+    std::array<__m256i, ((SIZE + 255) >> 8)> a_;
     std::array<int64_t, 4> find_temp;
 
    public:
     BitsetControllerAVX() {
-        for (int i = 0; i < (SIZE >> 8); i++) {
+        for (int i = 0; i < ((SIZE + 255) >> 8); i++) {
             a_[i] = _mm256_setzero_si256();
         }
     }
@@ -60,7 +60,7 @@ class BitsetControllerAVX{
     }
 
     void Add(std::size_t i) {
-        const int c = i >> 8; // 0 <= c < (SIZE >> 8)
+        const int c = i >> 8; // 0 <= c < ((SIZE + 255) >> 8)
         i &= 255; // 0 <= i <= 255
         __int64_t x = Get(a_[c], i >> 6);
         x |= (1ull << (i & 63));
@@ -68,14 +68,14 @@ class BitsetControllerAVX{
     }
 
     bool Test(std::size_t i) {
-        const int c = i >> 8; // 0 <= c < (SIZE >> 8)
+        const int c = i >> 8; // 0 <= c < ((SIZE + 255) >> 8)
         i &= 255; // 0 <= i <= 255
         __int64_t x = Get(a_[c], i >> 6);
         return  (x & (1ull << (i & 63))) != 0;
     }
 
     BitsetControllerAVX& operator|=(const BitsetControllerAVX& other) {
-        for (int i = 0; i < (SIZE >> 8); i++) {
+        for (int i = 0; i < ((SIZE + 255) >> 8); i++) {
             a_[i] = _mm256_or_si256(a_[i], other.a_[i]);
         }
         return *this;
@@ -88,7 +88,7 @@ class BitsetControllerAVX{
     }
 
     BitsetControllerAVX& operator&=(const BitsetControllerAVX& other) {
-        for (int i = 0; i < (SIZE >> 8); i++) {
+        for (int i = 0; i < ((SIZE + 255) >> 8); i++) {
             a_[i] = _mm256_and_si256(a_[i], other.a_[i]);
         }
         return *this;

@@ -7,7 +7,7 @@
 template <size_t SIZE>
 class BitsetController {
    private:
-    std::array<uint64_t, (SIZE >> 6)> a_;
+    std::array<uint64_t, ((SIZE + 63) >> 6)> a_;
 
    public:
     BitsetController() : a_() {}
@@ -35,7 +35,7 @@ class BitsetController {
     }
 
     BitsetController& operator|=(const BitsetController& other) {
-        for (int i = 0; i < (SIZE >> 6); i++) {
+        for (int i = 0; i < ((SIZE + 63) >> 6); i++) {
             a_[i] |= other.a_[i];
         }
         return *this;
@@ -48,7 +48,7 @@ class BitsetController {
     }
 
     BitsetController& operator&=(const BitsetController& other) {
-        for (int i = 0; i < (SIZE >> 6); i++) {
+        for (int i = 0; i < ((SIZE + 63) >> 6); i++) {
             a_[i] &= other.a_[i];
         }
         return *this;

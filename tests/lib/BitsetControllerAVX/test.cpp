@@ -8,7 +8,7 @@
 
 std::mt19937 rng(1337);
 
-const std::size_t SIZE = (1 << 9) * 10;
+const std::size_t SIZE = 5123;
 using Bitset = BitsetControllerAVX<SIZE>;
 
 int RandFromRange(int l, int r) { return rng() % (r - l + 1) + l; }
@@ -23,10 +23,6 @@ std::pair<Bitset, std::vector<bool>> RandomBitsetAndActual() {
         actual[idx] = true;
     }
     return {bc, actual};
-}
-
-TEST_CASE("Size is multiple of 512") {
-    REQUIRE(SIZE % 512 == 0);
 }
 
 TEST_CASE("Add and Test methods") {
