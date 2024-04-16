@@ -92,7 +92,7 @@ class BitsetControllerAVX{
 
     BitsetControllerAVX operator&(const BitsetControllerAVX& other) {
         BitsetControllerAVX temp = *this;
-        temp |= other;
+        temp &= other;
         return temp;
     }
 
