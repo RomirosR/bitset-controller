@@ -58,7 +58,7 @@ TEST_CASE("Bitwise OR") {
         auto [bc2, actual2] = RandomBitsetAndActual();
         auto bc3 = bc1 | bc2;
         for (int j = 0; j < SIZE; j++) {
-            REQUIRE((bc1.Test(j) | bc2.Test(j)) == (actual1[j] | actual2[j]));
+            REQUIRE((bc3.Test(j)) == (actual1[j] | actual2[j]));
         }
     }
     for (int i = 0; i < 100; i++) {
@@ -77,7 +77,7 @@ TEST_CASE("Bitwise AND") {
         auto [bc2, actual2] = RandomBitsetAndActual();
         auto bc3 = bc1 & bc2;
         for (int j = 0; j < SIZE; j++) {
-            REQUIRE((bc1.Test(j) & bc2.Test(j)) == (actual1[j] & actual2[j]));
+            REQUIRE((bc3.Test(j)) == (actual1[j] & actual2[j]));
         }
     }
     for (int i = 0; i < 100; i++) {
