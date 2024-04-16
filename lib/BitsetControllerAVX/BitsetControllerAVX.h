@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <iostream>
 
 class BitsetControllerAVX{
    private:
@@ -101,10 +102,10 @@ class BitsetControllerAVX{
         }
         int j = 0;
         while (j < 4) {
-            if (((i >> 8) << 8) + (j << 6) <= i) {
+            if (((i >> 8) << 8) + ((j + 1) << 6) <= i) {
                 find_temp[j] = 0;
             }
-            if (((i >> 8) << 8) <= i && i < ((i >> 8) << 8) + (j << 6)) {
+            if (((i >> 8) << 8) <= i && i < ((i >> 8) << 8) + ((j + 1) << 6)) {
                 find_temp[j] = find_temp[j] & (~((1ull << (i & 63)) - 1));
                 break;
             }
