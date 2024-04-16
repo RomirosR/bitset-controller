@@ -4,9 +4,10 @@
 #include <cstdint>
 #include <iostream>
 
+template <size_t SIZE>
 class BitsetController {
    private:
-    std::array<uint64_t, 8> a_;
+    std::array<uint64_t, (SIZE >> 6)> a_;
 
    public:
     BitsetController() : a_() {}
@@ -34,7 +35,7 @@ class BitsetController {
     }
 
     BitsetController& operator|=(const BitsetController& other) {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < (SIZE >> 6); i++) {
             a_[i] |= other.a_[i];
         }
         return *this;
@@ -47,7 +48,7 @@ class BitsetController {
     }
 
     BitsetController& operator&=(const BitsetController& other) {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < (SIZE >> 6); i++) {
             a_[i] &= other.a_[i];
         }
         return *this;
@@ -60,18 +61,18 @@ class BitsetController {
     }
 
     std::size_t Find_next(std::size_t i) {
-        if (i >= 512) {
-            return 512;
+        if (i >= SIZE) {
+            return SIZE;
         }
         if ((a_[i >> 6] & (~((1ull << (i & 63)) - 1))) != 0) {
             return ((i >> 6) << 6) + __builtin_ctzll(a_[i >> 6] & (~((1ull << (i & 63)) - 1)));
         }
         i += 64 - (i & 63);
-        while (i < 512 && a_[i >> 6] == 0) {
+        while (i < SIZE && a_[i >> 6] == 0) {
             i += 64;
         }
-        if (i >= 512) {
-            return 512;
+        if (i >= SIZE) {
+            return SIZE;
         }
         return i + __builtin_ctzll(a_[i >> 6]);
     }

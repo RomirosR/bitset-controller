@@ -8,12 +8,13 @@
 
 std::mt19937 rng(1337);
 
-const std::size_t SIZE = 512;
+const std::size_t SIZE = (1 << 9) * 10;
+using Bitset = BitsetController<SIZE>;
 
 int RandFromRange(int l, int r) { return rng() % (r - l + 1) + l; }
 
-std::pair<BitsetController, std::vector<bool>> RandomBitsetAndActual() {
-    BitsetController bc;
+std::pair<Bitset, std::vector<bool>> RandomBitsetAndActual() {
+    Bitset bc;
     const int k = RandFromRange(0, SIZE);
     std::vector<bool> actual(SIZE);
     for (int i = 0; i < k; i++) {
@@ -24,10 +25,14 @@ std::pair<BitsetController, std::vector<bool>> RandomBitsetAndActual() {
     return {bc, actual};
 }
 
+TEST_CASE("Size is multiple of 512") {
+    REQUIRE(SIZE % 512 == 0);
+}
+
 TEST_CASE("Add and Test methods") {
-    BitsetController bc;
+    Bitset bc;
     for (int i = 0; i < 100; i++) {
-        bc = BitsetController();
+        bc = Bitset();
         bc.Add(i);
         REQUIRE(bc.Test(i));
         for (int j = 0; j < SIZE; j++) {
@@ -38,7 +43,7 @@ TEST_CASE("Add and Test methods") {
         }
     }
     for (int i = 0; i < 100; i++) {
-        bc = BitsetController();
+        bc = Bitset();
         std::vector<bool> actual(SIZE);
         const int k = RandFromRange(0, SIZE);
         for (int j = 0; j < k; j++) {
