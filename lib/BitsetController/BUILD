@@ -7,5 +7,6 @@ cc_library(
     hdrs = ["BitsetController.h"],
     visibility = [
         "//tests/lib/BitsetController:__pkg__",
+        "//tests/benchmark:__pkg__",
     ],
 )

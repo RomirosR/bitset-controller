@@ -7,5 +7,12 @@ cc_library(
     hdrs = ["BitsetControllerAVX.h"],
     visibility = [
         "//tests/lib/BitsetControllerAVX:__pkg__",
+        "//tests/benchmark:__pkg__",
+    ],
+    copts = [
+        "-m64",
+        "-mavx2",
+        "-march=native",
+        "-mavx512f"
     ],
 )
