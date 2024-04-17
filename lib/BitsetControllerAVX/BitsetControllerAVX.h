@@ -11,12 +11,6 @@ class BitsetControllerAVX{
    private:
     std::array<__m256i, ((SIZE + 255) >> 8)> a_;
     std::array<int64_t, 4> find_temp;
-    std::array<__m256i, 4> one_in = {
-        _mm256_set_epi64x(0, 0, 0, 1),
-        _mm256_set_epi64x(0, 0, 1, 0),
-        _mm256_set_epi64x(0, 1, 0, 0),
-        _mm256_set_epi64x(1, 0, 0, 0)
-    };
 
    public:
     BitsetControllerAVX() {
@@ -34,54 +28,26 @@ class BitsetControllerAVX{
     [[noexcept]] BitsetControllerAVX& operator=(BitsetControllerAVX&& other) = default;
 
     static __int64_t Get(__m256i a, std::size_t i) {
-        if (i == 0) {
-            return _mm256_extract_epi64(a, 0);
-        }
-        if (i == 1) {
-            return _mm256_extract_epi64(a, 1);
-        }
-        if (i == 2) {
-            return _mm256_extract_epi64(a, 2);
-        }
-        if (i == 3) {
-            return _mm256_extract_epi64(a, 3);
-        }
-        return -1;
+        return reinterpret_cast<uint64_t*>(&a)[i];
     }
 
     static __m256i Set(__m256i a, std::size_t i, __int64_t x) {
-        if (i == 0) {
-            return _mm256_insert_epi64(a, x, 0);
-        }
-        if (i == 1) {
-            return _mm256_insert_epi64(a, x, 1);
-        }
-        if (i == 2) {
-            return _mm256_insert_epi64(a, x, 2);
-        }
-        if (i == 3) {
-            return _mm256_insert_epi64(a, x, 3);
-        }
-        return _mm256_setzero_si256();
+        reinterpret_cast<uint64_t*>(&a)[i] = x;
+        return a;
     }
 
     inline void Add(std::size_t i) {
         const int c = i >> 8; // 0 <= c < ((SIZE + 255) >> 8)
         i &= 255; // 0 <= i <= 255
-        __m256i temp = _mm256_srli_epi64(a_[c], (i & 63));
-        temp = _mm256_or_si256(temp, one_in[(i >> 6)]);
-        temp = _mm256_slli_epi64(temp, (i & 63));
-        a_[c] = _mm256_or_si256(a_[c], temp);
+        auto temp = reinterpret_cast<uint64_t*>(&a_[c]);
+        temp[i >> 6] |= (1ull << (i & 63));
     }
 
     bool Test(std::size_t i) {
         const int c = i >> 8; // 0 <= c < ((SIZE + 255) >> 8)
         i &= 255; // 0 <= i <= 255
-        __m256i temp = _mm256_srli_epi64(a_[c], (i & 63));
-        temp = _mm256_and_si256(temp, one_in[i >> 6]);
-        return !_mm256_testz_si256(temp, temp);
-        // __int64_t x = Get(a_[c], i >> 6);
-        // return  (x & (1ull << (i & 63))) != 0;
+        auto temp = reinterpret_cast<uint64_t*>(&a_[c]);
+        return (temp[i >> 6] & (1ull << (i & 63))) != 0;
     }
 
     BitsetControllerAVX& operator|=(const BitsetControllerAVX& other) {
@@ -114,25 +80,12 @@ class BitsetControllerAVX{
         for (int j = 0; j < 4; j++) {
             find_temp[j] = Get(a_[i >> 8], j);
         }
-        int j = 0;
-        while (j < 4) {
-            if (((i >> 8) << 8) + ((j + 1) << 6) <= i) {
-                find_temp[j] = 0;
-            }
-            if (((i >> 8) << 8) <= i && i < ((i >> 8) << 8) + ((j + 1) << 6)) {
-                find_temp[j] = find_temp[j] & (~((1ull << (i & 63)) - 1));
-                break;
-            }
+        find_temp[(i & 255) >> 6] = find_temp[(i & 255) >> 6] & (~((1ull << (i & 63)) - 1));
+        int j = (i & 255) >> 6;
+        while (j < 4 && find_temp[j] == 0) {
             j++;
         }
-        __int64_t or_val = 0;
-        for (int k = j; k < 4; k++) {
-            or_val |= find_temp[k];
-        }
-        if (or_val != 0) {
-            while (j < 4 && find_temp[j] == 0) {
-                j++;
-            }
+        if (j < 4) {
             return ((i >> 8) << 8) + (j << 6) + __builtin_ctzll(find_temp[j]);
         }
         i += 256 - (i & 255);
