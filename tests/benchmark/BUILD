@@ -7,10 +7,11 @@ cc_test(
         "//lib/BitsetController:BitsetController_lib",
         "//tools/catch:catch2",
     ],
-    size = "small",
+    size = "large",
     linkstatic = True,
     copts = [
         "-O3",
+        "-march=native",
         # "-Wl,-stack=256000000"
         # "-D_GLIBCXX_DEBUG",
         # "-D_GLIBCXX_DEBUG_PEDANTIC",

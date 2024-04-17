@@ -4,6 +4,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <fstream>
 
 #include "lib/BitsetController/BitsetController.h"
 #include <unistd.h>
@@ -13,18 +14,21 @@ std::mt19937 rng(1337);
 int RandFromRange(int l, int r) { return rng() % (r - l + 1) + l; }
 
 template <size_t SZ> 
-BitsetController<SZ> RandomBitset() {
+BitsetController<SZ> RandomBitset(double lb = 0, double ub = 1) {
     BitsetController<SZ> bc;
-    const int k = RandFromRange(0, SZ);
+    std::array<int, SZ> order;
+    std::iota(order.begin(), order.end(), 0);
+    std::shuffle(order.begin(), order.end(), rng);
+    const int k = RandFromRange(SZ * lb, SZ * ub);
     for (int i = 0; i < k; i++) {
-        const int idx = RandFromRange(0, SZ - 1);
+        const int idx = order[i];
         bc.Add(idx);
     }
     return bc;
 }
 
 template <size_t B_SZ, size_t O_SZ>
-std::tuple<std::array<BitsetController<B_SZ>, O_SZ>, std::array<int, O_SZ>, std::array<int, O_SZ>> GenData() {
+std::tuple<std::array<BitsetController<B_SZ>, O_SZ>, std::array<int, O_SZ>, std::array<int, O_SZ>> GenData(double lb = 0, double ub = 1) {
     std::array<BitsetController<B_SZ>, O_SZ> bc;
     for (auto& x : bc) {
         x = RandomBitset<B_SZ>();
@@ -101,14 +105,14 @@ TEST_CASE("Find_next") {
             return bc[order1[i & 255]].Find_next(RandFromRange(0, 65536 - 1));
         });
     };
-    BENCHMARK_ADVANCED("Random data, iterate over ones, size = 65536")(Catch::Benchmark::Chronometer meter) {
-        auto [bc, order1, order2] = GenData<65536, 256>();
+    BENCHMARK_ADVANCED("Random data, iterate over ones, size = 65536, popcnt ~ 70-100%")(Catch::Benchmark::Chronometer meter) {
+        auto [bc, order1, order2] = GenData<65536, 256>(0.7, 1);
         meter.measure([&](int i) {
-            int j = bc[order1[i & 255]].Find_next(0);
+            volatile int j = bc[order1[i & 255]].Find_next(0);
             while (j < 65536) {
                 j = bc[order1[i & 255]].Find_next(j + 1);
             }
-            return 65536;
+            return j;
         });
     };
 }
