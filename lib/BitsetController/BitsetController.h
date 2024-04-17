@@ -10,7 +10,7 @@ class BitsetController {
     std::array<uint64_t, ((SIZE + 63) >> 6)> a_;
 
    public:
-    BitsetController() : a_() {}
+    BitsetController() : a_{} {}
 
     BitsetController(const BitsetController& other) = default;
 

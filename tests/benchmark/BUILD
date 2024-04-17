@@ -7,10 +7,14 @@ cc_test(
         "//lib/BitsetController:BitsetController_lib",
         "//tools/catch:catch2",
     ],
-    size = "large",
-    # copts = [
-    #     "-O3",
-    # ],
+    size = "small",
+    linkstatic = True,
+    copts = [
+        "-O3",
+        # "-Wl,-stack=256000000"
+        # "-D_GLIBCXX_DEBUG",
+        # "-D_GLIBCXX_DEBUG_PEDANTIC",
+    ],
 )
 
 cc_test(
@@ -20,12 +24,13 @@ cc_test(
         "//lib/BitsetControllerAVX:BitsetControllerAVX_lib",
         "//tools/catch:catch2",
     ],
-    size = "small",
+    size = "medium",
+    linkstatic = True,
     copts = [
+        "-O3",
+        "-march=native",
         "-m64",
         "-mavx2",
-        "-march=native",
-        "-mavx512f"
     ],
 )
         

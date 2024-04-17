@@ -5,8 +5,8 @@
 #include <random>
 #include <vector>
 
-// #include "lib/BitsetControllerAVX/BitsetControllerAVX.h"
 #include "lib/BitsetController/BitsetController.h"
+#include <unistd.h>
 
 std::mt19937 rng(1337);
 
@@ -38,17 +38,6 @@ std::tuple<std::array<BitsetController<B_SZ>, O_SZ>, std::array<int, O_SZ>, std:
     return {bc, order1, order2};
 }
 
-// template <size_t SZ> 
-// BitsetControllerAVX<SZ> RandomBitsetAVX() {
-//     BitsetControllerAVX<SZ> bc;
-//     const int k = RandFromRange(0, SZ);
-//     for (int i = 0; i < k; i++) {
-//         const int idx = RandFromRange(0, SZ - 1);
-//         bc.Add(idx);
-//     }
-//     return bc;
-// }
-
 TEST_CASE("Add and Test") {
     const size_t SIZE = 123;
     BitsetController<SIZE> bc;
@@ -66,46 +55,60 @@ TEST_CASE("Add and Test") {
 }
 
 TEST_CASE("Bitwise AND and OR") {
-    // BENCHMARK_ADVANCED("Bitwise AND, size = 512")(Catch::Benchmark::Chronometer meter) {
-    //     auto [bc, order1, order2] = GenData<512, 1024>();
-    //     meter.measure([&](int i) {
-    //         return bc[order1[i & 1023]] &= bc[order2[i & 1023]];
-    //     });
-    // };
-    // BENCHMARK_ADVANCED("Bitwise AND, size = 8192")(Catch::Benchmark::Chronometer meter) {
-    //     auto [bc, order1, order2] = GenData<8192, 1024>();
-    //     meter.measure([&](int i) {
-    //         return bc[order1[i & 1023]] &= bc[order2[i & 1023]];
-    //     });
-    // };
-    // BENCHMARK_ADVANCED("Bitwise AND, size = 65536")(Catch::Benchmark::Chronometer meter) {
-    //     auto [bc, order1, order2] = GenData<65536, 256>();
-    //     meter.measure([&](int i) {
-    //         return bc[order1[i & 255]] &= bc[order2[i & 255]];
-    //     });
-    // };
-    // auto [bc, order1, order2] = GenData<16777216, 4>();
-    // int i = 0;
-    // REQUIRE(true);
-    // while (true) {
-    //     try {
-    //             std::cerr << i << "\n";
-    //             bc[order1[i & 3]] &= bc[order2[i & 3]];
-    //     } catch (...) {
+    BENCHMARK_ADVANCED("Bitwise AND, size = 512")(Catch::Benchmark::Chronometer meter) {
+        auto [bc, order1, order2] = GenData<512, 1024>();
+        meter.measure([&](int i) {
+            return bc[order1[i & 1023]] &= bc[order2[i & 1023]];
+        });
+    };
+    BENCHMARK_ADVANCED("Bitwise AND, size = 8192")(Catch::Benchmark::Chronometer meter) {
+        auto [bc, order1, order2] = GenData<8192, 1024>();
+        meter.measure([&](int i) {
+            return bc[order1[i & 1023]] &= bc[order2[i & 1023]];
+        });
+    };
+    BENCHMARK_ADVANCED("Bitwise AND, size = 65536")(Catch::Benchmark::Chronometer meter) {
+        auto [bc, order1, order2] = GenData<65536, 256>();
+        meter.measure([&](int i) {
+            return bc[order1[i & 255]] &= bc[order2[i & 255]];
+        });
+    };
 
-    //     }
-    //     i++;
+    BENCHMARK_ADVANCED("Bitwise OR, size = 512")(Catch::Benchmark::Chronometer meter) {
+        auto [bc, order1, order2] = GenData<512, 1024>();
+        meter.measure([&](int i) {
+            return bc[order1[i & 1023]] |= bc[order2[i & 1023]];
+        });
+    };
+    BENCHMARK_ADVANCED("Bitwise OR, size = 8192")(Catch::Benchmark::Chronometer meter) {
+        auto [bc, order1, order2] = GenData<8192, 1024>();
+        meter.measure([&](int i) {
+            return bc[order1[i & 1023]] |= bc[order2[i & 1023]];
+        });
+    };
+    BENCHMARK_ADVANCED("Bitwise OR, size = 65536")(Catch::Benchmark::Chronometer meter) {
+        auto [bc, order1, order2] = GenData<65536, 256>();
+        meter.measure([&](int i) {
+            return bc[order1[i & 255]] |= bc[order2[i & 255]];
+        });
+    };
+}
 
-    // }
-    BENCHMARK_ADVANCED("Bitwise AND, size = 16777216")(Catch::Benchmark::Chronometer meter) {
-        auto [bc, order1, order2] = GenData<16777216, 4>();
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                bc[i] &= bc[j];
+TEST_CASE("Find_next") {
+    BENCHMARK_ADVANCED("Random data, single run, size = 65536")(Catch::Benchmark::Chronometer meter) {
+        auto [bc, order1, order2] = GenData<65536, 256>();
+        meter.measure([&](int i) {
+            return bc[order1[i & 255]].Find_next(RandFromRange(0, 65536 - 1));
+        });
+    };
+    BENCHMARK_ADVANCED("Random data, iterate over ones, size = 65536")(Catch::Benchmark::Chronometer meter) {
+        auto [bc, order1, order2] = GenData<65536, 256>();
+        meter.measure([&](int i) {
+            int j = bc[order1[i & 255]].Find_next(0);
+            while (j < 65536) {
+                j = bc[order1[i & 255]].Find_next(j + 1);
             }
-        }
-        // meter.measure([&](int i) {
-        //     return bc[order1[i & 3]] &= bc[order2[i & 3]];
-        // });
+            return 65536;
+        });
     };
 }
